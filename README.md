@@ -2,8 +2,46 @@
 
 マルチシグの書き方勉強中。
 
+## Setup
+
+```shell
+$ git clone https://github.com/hirokuma/eth-myuserop.git
+$ cd eth-myuserop
+$ git submodule init
+$ git submodule update
+```
+
+### Run anvil
+
+```shell
+$ cd docker
+$ docker compose up
+```
+
+### Deploy EntryPoint v0.9
+
+```shell
+$ cd lib/account-abstraction
+$ yarn install
+$ yarn deploy --network localhost
+```
+
+### Deploy MyUserOp
+
+```shell
+# Anvil default account 0 private key
+$ URL="http://localhost:8545"
+$ KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+$ forge script script/Deploy.s.sol --rpc-url $URL --broadcast --private-key $KEY
+```
+
+## Development
+
 ```shell
 $ forge init my_userop
+$ cd my_userop
+$ forge install OpenZeppelin/openzeppelin-contracts@v5.6.1
+$ forge install eth-infinitism/account-abstraction@v0.9.0
 ```
 
 [OpenZeppelin Wizard](https://wizard.openzeppelin.com/embed?tab=Account)のAccountタブにして以下をチェックして作られたコードを貼り付け。

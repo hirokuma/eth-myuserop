@@ -1,0 +1,16 @@
+services:
+  anvil:
+    image: ghcr.io/foundry-rs/foundry
+    container_name: anvil
+    ports:
+      - "8545:8545"
+    entrypoint: ["anvil"]
+    command:
+      - --state
+      - "/tmp/state.json"
+      - -b
+      - "3"
+      - --slots-in-an-epoch
+      - "10"
+      - --host
+      - 0.0.0.0
