@@ -1,3 +1,17 @@
+# MyUserOp
+
+マルチシグの書き方勉強中。
+
+```shell
+$ forge init my_userop
+```
+
+[OpenZeppelin Wizard](https://wizard.openzeppelin.com/embed?tab=Account)のAccountタブにして以下をチェックして作られたコードを貼り付け。
+
+* Signature Validation
+  * Account Bound
+* Multisig
+
 ## Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
