@@ -44,6 +44,23 @@ $ forge install OpenZeppelin/openzeppelin-contracts@v5.6.1
 $ forge install eth-infinitism/account-abstraction@v0.9.0
 ```
 
+### TypeScript
+
+```shell
+$ node --version
+v22.22.2
+$ pnpm --version
+10.33.0
+
+$ mkdir viem
+$ cd viem
+$ pnpm add viem
+$ pnpm add -D typescript tsx @types/node
+$ npx tsc --version
+Version 6.0.2
+$ npx tsc --init
+```
+
 [OpenZeppelin Wizard](https://wizard.openzeppelin.com/embed?tab=Account)のAccountタブにして以下をチェックして作られたコードを貼り付け。
 
 * Signature Validation
