@@ -33,11 +33,13 @@ $ pnpm dev
 
 ## Development
 
+EntryPoint v0.9.0ではrevertしてうまくいかなかったのでv0.8.0を使用した。
+
 ```shell
 $ forge init my_userop
 $ cd my_userop
-$ forge install OpenZeppelin/openzeppelin-contracts@v5.6.1
-$ forge install eth-infinitism/account-abstraction@v0.9.0
+$ forge install OpenZeppelin/openzeppelin-contracts@v5.5.0
+$ forge install eth-infinitism/account-abstraction@v0.8.0
 ```
 
 ### TypeScript
