@@ -22,7 +22,7 @@ contract MyUserOpTest is Test, HelperContract {
         op = new MyUserOp(signers, 2);
     }
 
-    function test_Increment() public {
+    function test_addSigners() public {
         bytes[] memory signers = new bytes[](1);
         signers[0] = abi.encodePacked(DAVE);
         vm.prank(address(op.entryPoint()));

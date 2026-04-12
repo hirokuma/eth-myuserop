@@ -6,11 +6,11 @@ services:
       - "8545:8545"
     entrypoint: ["anvil"]
     command:
+      - -vvvvv
+      - --steps-tracing
       - --state
       - "/tmp/state.json"
       - -b
-      - "3"
-      - --slots-in-an-epoch
       - "10"
       - --host
       - 0.0.0.0

@@ -18,30 +18,17 @@ $ cd docker
 $ docker compose up
 ```
 
-### Deploy EntryPoint v0.9
-
-[GitHub repository](https://github.com/eth-infinitism/account-abstraction/tree/v0.9.0)
+### Deploy contracts
 
 ```shell
-$ cd lib/account-abstraction
-$ yarn install
-$ yarn deploy --network localhost
+$ ./deploy.sh
 ```
 
-### Deploy MyUserOp
-
-* Anvil default account[0]
-  * address: `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`
-  * private key: `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80`
-* Anvil default account[1]
-  * address: `0x70997970C51812dc3A010C7d01b50e0d17dc79C8`
-  * private key: `0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d`
+### Run
 
 ```shell
-# Anvil default account 0 private key
-$ URL="http://localhost:8545"
-$ KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-$ forge script script/Deploy.s.sol --rpc-url $URL --broadcast --private-key $KEY
+$ cd viem
+$ pnpm dev
 ```
 
 ## Development

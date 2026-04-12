@@ -3,6 +3,8 @@ pragma solidity ^0.8.27;
 
 import {MyUserOp} from "./MyUserOp.sol";
 import {PackedUserOperation, IEntryPoint} from "@openzeppelin/contracts/interfaces/draft-IERC4337.sol";
+import {ERC4337Utils, IEntryPointExtra} from "@openzeppelin/contracts/account/utils/draft-ERC4337Utils.sol";
+import {console} from "forge-std/console.sol";
 
 contract Example {
     MyUserOp internal muo_;
@@ -11,7 +13,16 @@ contract Example {
         muo_ = new MyUserOp(signers, threshold);
     }
 
+    function getMyUserOpAddress() public view returns (address) {
+        return address(muo_);
+    }
+
+    function getSigners(uint64 start, uint64 end) public view returns (bytes[] memory) {
+        return muo_.getSigners(start, end);
+    }
+
     function addSigners(bytes[] memory adders, bytes[] memory signers, bytes[] memory signatures) public {
+        console.log("Example.addSigners");
         _executeMultiSigUserOp(abi.encodeWithSelector(muo_.addSigners.selector, adders), signers, signatures);
     }
 
@@ -24,20 +35,28 @@ contract Example {
     }
 
     function _executeMultiSigUserOp(bytes memory callData, bytes[] memory signers, bytes[] memory signatures) internal {
+        IEntryPoint entryPoint = muo_.entryPoint();
+        // uint256 nonce = entryPoint.getNonce(address(muo_), uint192(0xabcd00001234));
+        uint256 nonce = uint256(0xabcd000012340000000000000000);
+
         PackedUserOperation[] memory ops = new PackedUserOperation[](1);
         ops[0] = PackedUserOperation({
             sender: address(muo_),
-            nonce: muo_.getNonce(),
+            nonce: nonce,
             initCode: bytes(""),
             callData: callData,
-            accountGasLimits: bytes32(abi.encodePacked(uint128(150000), uint128(200000))),
-            preVerificationGas: 100000,
-            gasFees: bytes32(abi.encodePacked(uint128(1000000000), uint128(1000000000))),
+            accountGasLimits: bytes32(abi.encodePacked(uint128(150_000), uint128(200_000))),
+            preVerificationGas: 21_000,
+            gasFees: bytes32(abi.encodePacked(uint128(2_000_000_000), uint128(30_000_000_000))),
             paymasterAndData: bytes(""),
             signature: abi.encode(signers, signatures)
         });
 
-        IEntryPoint entryPoint = muo_.entryPoint();
+        // debug log
+        // bytes32 opHash = IEntryPointExtra(address(ERC4337Utils.ENTRYPOINT_V09)).getUserOpHash(ops[0]);
+        // console.log("opHash");
+        // console.logBytes32(opHash);
+
         entryPoint.handleOps(ops, payable(address(this)));
     }
 }
