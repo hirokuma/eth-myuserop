@@ -246,9 +246,10 @@ const nonce = await getNonce(sender, NONCE_KEY);
 const callData = addSignersCallData(adders);
 const auo = createPackedUserOperation(sender, nonce, callData);
 const signature0 =  await signPackedUserOperation(auo, ACCOUNT0_KEY);
-
 const params = sendAddSignersParam(adders, [ACCOUNT0], [signature0]);
 const txhash = await walletClient.writeContract(params);
+
+console.log('Wait for transaction receipt...');
 const receipt = await client.waitForTransactionReceipt({ hash: txhash });
 if (receipt.status !== 'success') {
   console.error(`fail get receipt(tx_hash=${txhash}): ${receipt.status}`);

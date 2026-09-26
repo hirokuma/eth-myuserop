@@ -8,6 +8,7 @@ import {console} from "forge-std/console.sol";
 
 contract Example {
     MyUserOp internal muo_;
+    address constant ENTRYPOINT = address(ERC4337Utils.ENTRYPOINT_V09);
 
     // ETH receivable for handleOps()
     // これがないとhandleOps()によるpayable(address(this))への送金が"AA91 failed send to beneficiary"によりrevertする
@@ -56,7 +57,7 @@ contract Example {
         });
 
         // debug log
-        bytes32 opHash = IEntryPointExtra(address(ERC4337Utils.ENTRYPOINT_V08)).getUserOpHash(ops[0]);
+        bytes32 opHash = IEntryPointExtra(ENTRYPOINT).getUserOpHash(ops[0]);
         console.log("opHash");
         console.logBytes32(opHash);
 
