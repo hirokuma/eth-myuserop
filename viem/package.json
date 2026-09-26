@@ -4,11 +4,12 @@
 		"dev": "tsx src/index.ts"
 	},
 	"dependencies": {
-		"viem": "^2.47.12"
+		"viem": "^2.56.9"
 	},
 	"devDependencies": {
-		"@types/node": "^25.6.0",
-		"tsx": "^4.21.0",
-		"typescript": "^6.0.2"
-	}
+		"@types/node": "^25.9.8",
+		"tsx": "^4.23.15",
+		"typescript": "^6.0.3"
+	},
+	"packageManager": "pnpm@12.6.0+sha512.3ef68f951cb111ac204b4a5a16f0b2ddf0da56a96e0413e81d855d9f0b55ef926714709028e1cd00c405c2c5fb7b9e8ec4dc46777c805d0373c2f2ff00fd20ec"
 }
