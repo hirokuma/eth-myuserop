@@ -6,9 +6,9 @@ import { anvil } from 'viem/chains';
 import deployed from '../../broadcast/Deploy.s.sol/31337/run-latest.json' with { type: 'json' };
 const contractExample = deployed.transactions[0]?.contractAddress as Address;
 
-const entryPoint_0_8_0 = '0x4337084d9e255ff0702461cf8895ce9e3b5ff108';
-// const entryPoint_0_9_0 = '0x433709009B8330FDa32311DF1C2AFA402eD8D009';
-const entryPointAddress = entryPoint_0_8_0;
+// const entryPoint_0_8_0 = '0x4337084d9e255ff0702461cf8895ce9e3b5ff108';
+const entryPoint_0_9_0 = '0x433709009B8330FDa32311DF1C2AFA402eD8D009';
+const entryPointAddress = entryPoint_0_9_0;
 
 const NONCE_KEY = 0x123400000000000000000000000000000000000000000000n;
 const ACCOUNT0: Address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
