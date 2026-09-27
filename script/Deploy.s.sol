@@ -3,9 +3,11 @@ pragma solidity ^0.8.13;
 
 import {Script} from "forge-std/Script.sol";
 import {MyUserOp} from "../src/MyUserOp.sol";
+import {MyErc20} from "../src/MyErc20.sol";
 
 contract DeployScript is Script {
     MyUserOp public muo;
+    MyErc20 public erc20;
 
     address constant ALICE = address(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266);
     // address constant BOB = address(0x70997970C51812dc3A010C7d01b50e0d17dc79C8);
@@ -22,6 +24,8 @@ contract DeployScript is Script {
         // signers[1] = abi.encodePacked(BOB);
         // signers[2] = abi.encodePacked(CAROL);
         muo = new MyUserOp(signers, 1);
+
+        erc20 = new MyErc20("MyERC20", "MET");
 
         vm.stopBroadcast();
     }

@@ -1,7 +1,8 @@
 {
 	"type": "module",
 	"scripts": {
-		"dev": "tsx src/index.ts"
+		"sendTransfers": "tsx src/sendTransfers.ts",
+		"addSigners": "tsx src/addSigners.ts"
 	},
 	"dependencies": {
 		"viem": "^2.56.9"

@@ -1,7 +1,6 @@
-import { createPublicClient, createWalletClient, http, encodePacked, encodeFunctionData, encodeAbiParameters, maxUint64 } from 'viem';
+import { createPublicClient, createWalletClient, http, encodePacked, encodeFunctionData, encodeAbiParameters, maxUint64, parseAbi } from 'viem';
 import type { Address, Hex } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts'
-import { createBundlerClient } from 'viem/account-abstraction'
+import { privateKeyToAccount } from 'viem/accounts';
 import { anvil } from 'viem/chains';
 
 // MyUserOp contract address (replace with actual deployed address)
@@ -26,15 +25,15 @@ const maxFeePerGas = 30_000_000_000n;
 
 // https://github.com/eth-infinitism/account-abstraction/blob/v0.9.0/contracts/interfaces/PackedUserOperation.sol#L36-L46
 type PackedUserOperation = {
-  sender: Address
-  nonce: bigint
-  initCode: Hex
-  callData: Hex
-  accountGasLimits: Hex   // bytes32
-  preVerificationGas: bigint
-  gasFees: Hex            // bytes32
-  paymasterAndData: Hex
-  signature: Hex
+  sender: Address;
+  nonce: bigint;
+  initCode: Hex;
+  callData: Hex;
+  accountGasLimits: Hex;   // bytes32
+  preVerificationGas: bigint;
+  gasFees: Hex;            // bytes32
+  paymasterAndData: Hex;
+  signature: Hex;
 };
 
 const PackedUserOperationComponent = [
@@ -61,17 +60,11 @@ const walletClient = createWalletClient({
 
 async function getNonce(account: Address, nonceKey: bigint): Promise<bigint> {
   // https://github.com/eth-infinitism/account-abstraction/blob/v0.9.0/contracts/interfaces/INonceManager.sol#L15-L16
-  // function getNonce(address sender, uint192 key)
-  // external view returns (uint256 nonce);
   const nonce = await client.readContract({
     address: entryPointAddress,
-    abi: [{
-      type: 'function',
-      name: 'getNonce',
-      stateMutability: 'view',
-      inputs: [{ type: 'address' }, { type: 'uint192' }],
-      outputs: [{ type: 'uint256' }],
-    }],
+    abi: parseAbi([
+      'function getNonce(address sender, uint192 key) external view returns (uint256 nonce)',
+    ]),
     functionName: 'getNonce',
     args: [account, nonceKey]
   }) as bigint;
@@ -124,20 +117,9 @@ async function signPackedUserOperation(po: PackedUserOperation, signer: Address,
 function addSignersCallData(adders: Hex[]): Hex {
   // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.6.1/contracts/utils/cryptography/signers/MultiSignerERC7913.sol#L125
   return encodeFunctionData({
-    abi: [
-      {
-        type: 'function',
-        name: 'addSigners',
-        stateMutability: 'nonpayable',
-        inputs: [
-          {
-            name: 'signers',
-            type: 'bytes[]'
-          }
-        ],
-        outputs: []
-      }
-    ] as const,
+    abi: parseAbi([
+      'function addSigners(bytes[] memory signers) external',
+    ]),
     functionName: 'addSigners',
     args: [adders]
   });
@@ -175,24 +157,9 @@ async function getSigners(): Promise<Hex[]> {
   // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.6.1/contracts/utils/cryptography/signers/MultiSignerERC7913.sol#L90
   const signers = await client.readContract({
     address: myUserOpAddress,
-    abi: [
-      {
-        type: 'function',
-        name: 'getSigners',
-        stateMutability: 'view',
-        inputs: [
-          {
-            name: 'start',
-            type: 'uint64',
-          },
-          {
-            name: 'end',
-            type: 'uint64',
-          }
-        ],
-        outputs: [{ type: 'bytes[]' }]
-      }
-    ] as const,
+    abi: parseAbi([
+      'function getSigners(uint64 start, uint64 end) external view returns (bytes[] memory signers)',
+    ]),
     functionName: 'getSigners',
     args: [0n, maxUint64]
   }) as Hex[];
@@ -201,7 +168,7 @@ async function getSigners(): Promise<Hex[]> {
 
 // Connection check
 let blockNumber = await client.getBlockNumber();
-console.log(blockNumber);
+console.log(`blockNumber=${blockNumber}`);
 
 const currentSigners = await getSigners();
 console.log(`current signers=${JSON.stringify(currentSigners)}`);
