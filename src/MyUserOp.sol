@@ -21,8 +21,6 @@ contract MyUserOp is Account, EIP712, ERC7739, ERC7821, MultiSignerERC7913 {
     {}
 
     function addSigners(bytes[] memory signers) public onlyEntryPointOrSelf {
-        console.log("MyUserOp.addSigners");
-        console.logBytes(signers[0]);
         _addSigners(signers);
     }
 

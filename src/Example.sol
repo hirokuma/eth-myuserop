@@ -9,6 +9,7 @@ import {console} from "forge-std/console.sol";
 contract Example {
     MyUserOp internal muo_;
     address constant ENTRYPOINT = address(ERC4337Utils.ENTRYPOINT_V09);
+    uint192 constant NONCE_KEY = uint192(0x123400000000000000000000000000000000000000000000);
 
     // ETH receivable for handleOps()
     // これがないとhandleOps()によるpayable(address(this))への送金が"AA91 failed send to beneficiary"によりrevertする
@@ -22,26 +23,33 @@ contract Example {
         return address(muo_);
     }
 
-    function getSigners(uint64 start, uint64 end) public view returns (bytes[] memory) {
-        return muo_.getSigners(start, end);
+    function getSigners() public view returns (bytes[] memory) {
+        return muo_.getSigners(0, type(uint64).max);
     }
 
-    function addSigners(bytes[] memory adders, bytes[] memory signers, bytes[] memory signatures) public {
-        console.log("Example.addSigners");
-        _executeMultiSigUserOp(abi.encodeWithSelector(muo_.addSigners.selector, adders), signers, signatures);
+    function addSigners(bytes[] memory adders) public view returns (PackedUserOperation[] memory) {
+        return _executeMultiSigUserOp(abi.encodeWithSelector(muo_.addSigners.selector, adders));
     }
 
-    function removeSigners(bytes[] memory removers, bytes[] memory signers, bytes[] memory signatures) public {
-        _executeMultiSigUserOp(abi.encodeWithSelector(muo_.removeSigners.selector, removers), signers, signatures);
+    function removeSigners(bytes[] memory removers, bytes[] memory signers, bytes[] memory signatures)
+        public
+        view
+        returns (PackedUserOperation[] memory)
+    {
+        return _executeMultiSigUserOp(abi.encodeWithSelector(muo_.removeSigners.selector, removers));
     }
 
-    function setThreshold(uint64 threshold, bytes[] memory signers, bytes[] memory signatures) public {
-        _executeMultiSigUserOp(abi.encodeWithSelector(muo_.setThreshold.selector, threshold), signers, signatures);
+    function setThreshold(uint64 threshold, bytes[] memory signers, bytes[] memory signatures)
+        public
+        view
+        returns (PackedUserOperation[] memory)
+    {
+        return _executeMultiSigUserOp(abi.encodeWithSelector(muo_.setThreshold.selector, threshold));
     }
 
-    function _executeMultiSigUserOp(bytes memory callData, bytes[] memory signers, bytes[] memory signatures) internal {
+    function _executeMultiSigUserOp(bytes memory callData) internal view returns (PackedUserOperation[] memory) {
         IEntryPoint entryPoint = muo_.entryPoint();
-        uint256 nonce = entryPoint.getNonce(address(muo_), uint192(0x123400000000000000000000000000000000000000000000));
+        uint256 nonce = entryPoint.getNonce(address(muo_), NONCE_KEY);
 
         PackedUserOperation[] memory ops = new PackedUserOperation[](1);
         ops[0] = PackedUserOperation({
@@ -53,14 +61,14 @@ contract Example {
             preVerificationGas: 21_000,
             gasFees: bytes32(abi.encodePacked(uint128(2_000_000_000), uint128(30_000_000_000))),
             paymasterAndData: bytes(""),
-            signature: abi.encode(signers, signatures)
+            signature: ""
         });
 
-        // debug log
-        bytes32 opHash = IEntryPointExtra(ENTRYPOINT).getUserOpHash(ops[0]);
-        console.log("opHash");
-        console.logBytes32(opHash);
+        // // debug log
+        // bytes32 opHash = IEntryPointExtra(ENTRYPOINT).getUserOpHash(ops[0]);
+        // console.log("_executeMultiSigUserOp opHash");
+        // console.logBytes32(opHash);
 
-        entryPoint.handleOps(ops, payable(address(this)));
+        return ops;
     }
 }
