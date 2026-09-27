@@ -16,10 +16,10 @@ echo "Test contracts deployed."
 echo
 
 # Deposit to EntryPoint
-MyUserOP=$(cat broadcast/Deploy.s.sol/31337/run-latest.json | jq -r .transactions[0].additionalContracts[0].address)
+MyUserOP=$(cat broadcast/Deploy.s.sol/31337/run-latest.json | jq -r .transactions[0].contractAddress)
 # ENTRYPOINT_V0_8_0="0x4337084d9e255ff0702461cf8895ce9e3b5ff108"
 ENTRYPOINT_V0_9_0="0x433709009B8330FDa32311DF1C2AFA402eD8D009"
-cast send $ENTRYPOINT_V0_9_0 "depositTo(address)" $MyUserOP --value 1ether --private-key $KEY
+cast send $ENTRYPOINT_V0_9_0 "depositTo(address)" $MyUserOP --value 1ether --private-key $KEY --rpc-url $URL
 echo
 echo "Deposit to v0.9.0"
 echo

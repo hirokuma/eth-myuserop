@@ -1,10 +1,13 @@
-import { createPublicClient, createWalletClient, http, encodePacked, encodeFunctionData, maxUint64 } from 'viem';
+import { createPublicClient, createWalletClient, http, encodePacked, encodeFunctionData, encodeAbiParameters, maxUint64 } from 'viem';
 import type { Address, Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts'
+import { createBundlerClient } from 'viem/account-abstraction'
 import { anvil } from 'viem/chains';
 
+// MyUserOp contract address (replace with actual deployed address)
+// const myUserOpAddress: Address = '0xdc64a140aa3e981100a9beca4e685f962f0cf6c9';
 import deployed from '../../broadcast/Deploy.s.sol/31337/run-latest.json' with { type: 'json' };
-const contractExample = deployed.transactions[0]?.contractAddress as Address;
+const myUserOpAddress = deployed.transactions[0]?.contractAddress as Address;
 
 // const entryPoint_0_8_0 = '0x4337084d9e255ff0702461cf8895ce9e3b5ff108';
 const entryPoint_0_9_0 = '0x433709009B8330FDa32311DF1C2AFA402eD8D009';
@@ -65,7 +68,7 @@ async function getNonce(account: Address, nonceKey: bigint): Promise<bigint> {
     abi: [{
       type: 'function',
       name: 'getNonce',
-      stateMutability: 'external view',
+      stateMutability: 'view',
       inputs: [{ type: 'address' }, { type: 'uint192' }],
       outputs: [{ type: 'uint256' }],
     }],
@@ -101,27 +104,21 @@ async function getUserOpHash(op: PackedUserOperation): Promise<Hex> {
   return hash;
 }
 
-async function signPackedUserOperation(po: PackedUserOperation, privateKey: Hex): Promise<Hex> {
-  const hash = await getUserOpHash(po);
-  const account = privateKeyToAccount(privateKey);
-  const signature =  await account.sign({ hash });
-  return signature;
+function encodeMultiSignature(signers: Hex[], signatures: Hex[]): Hex {
+  // MultiSignerERC7913 expects abi.encode(bytes[] signers, bytes[] signatures)
+  return encodeAbiParameters(
+    [{ type: 'bytes[]' }, { type: 'bytes[]' }],
+    [signers, signatures]
+  );
 }
 
-async function getMyUserOpAddress(): Promise<Hex> {
-  const addr = await client.readContract({
-    address: contractExample,
-    abi: [{
-      type: 'function',
-      name: 'getMyUserOpAddress',
-      stateMutability: 'public view',
-      inputs: [],
-      outputs: [{ type: 'address' }],
-    }],
-    functionName: 'getMyUserOpAddress',
-    args: []
-  }) as Hex;
-  return addr;
+async function signPackedUserOperation(po: PackedUserOperation, signer: Address, privateKey: Hex): Promise<Hex> {
+  const hash = await getUserOpHash(po);
+  const account = privateKeyToAccount(privateKey);
+  const rawSignature = await account.sign({ hash });
+  // ECDSA signer in MultiSignerERC7913 is encoded as the 20-byte address
+  const signerBytes = encodePacked(['address'], [signer]);
+  return encodeMultiSignature([signerBytes], [rawSignature]);
 }
 
 function addSignersCallData(adders: Hex[]): Hex {
@@ -131,7 +128,7 @@ function addSignersCallData(adders: Hex[]): Hex {
       {
         type: 'function',
         name: 'addSigners',
-        stateMutability: 'public',
+        stateMutability: 'nonpayable',
         inputs: [
           {
             name: 'signers',
@@ -146,41 +143,10 @@ function addSignersCallData(adders: Hex[]): Hex {
   });
 }
 
-function sendAddSignersParam(adders: Hex[], signers: Hex[], signatures: Hex[]): any {
-  return {
-    address: contractExample,
-    abi: [
-      {
-        type: 'function',
-        name: 'addSigners',
-        stateMutability: 'public',
-        inputs: [
-          {
-            name: 'adders',
-            type: 'bytes[]'
-          },
-          {
-            name: 'signers',
-            type: 'bytes[]'
-          },
-          {
-            name: 'signatures',
-            type: 'bytes[]'
-          }
-        ],
-        outputs: []
-      }
-
-    ] as const,
-    functionName: 'addSigners',
-    args: [adders, signers, signatures]
-  };
-}
-
 function createPackedUserOperation(
   sender: Address,
   nonce: bigint,
-  callData: Hex
+  callData: Hex,
 ): PackedUserOperation {
   const accountGasLimits = encodePacked(
     ['uint128', 'uint128'],
@@ -208,12 +174,12 @@ function createPackedUserOperation(
 async function getSigners(): Promise<Hex[]> {
   // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.6.1/contracts/utils/cryptography/signers/MultiSignerERC7913.sol#L90
   const signers = await client.readContract({
-    address: contractExample,
+    address: myUserOpAddress,
     abi: [
       {
         type: 'function',
         name: 'getSigners',
-        stateMutability: 'public view',
+        stateMutability: 'view',
         inputs: [
           {
             name: 'start',
@@ -240,24 +206,47 @@ console.log(blockNumber);
 const currentSigners = await getSigners();
 console.log(`current signers=${JSON.stringify(currentSigners)}`);
 
-const sender = await getMyUserOpAddress();
+const sender = myUserOpAddress;
 const adders = [ACCOUNT1];
 const nonce = await getNonce(sender, NONCE_KEY);
+
 const callData = addSignersCallData(adders);
-const auo = createPackedUserOperation(sender, nonce, callData);
-const signature0 =  await signPackedUserOperation(auo, ACCOUNT0_KEY);
-const params = sendAddSignersParam(adders, [ACCOUNT0], [signature0]);
-const txhash = await walletClient.writeContract(params);
+const unsignedOp = createPackedUserOperation(sender, nonce, callData);
+const signature0 = await signPackedUserOperation(unsignedOp, ACCOUNT0, ACCOUNT0_KEY);
+
+const signedOp: PackedUserOperation = { ...unsignedOp, signature: signature0 };
+
+// EntryPoint v0.9 handleOps
+const txhash = await walletClient.writeContract({
+  address: entryPointAddress,
+  abi: [
+    {
+      type: 'function',
+      name: 'handleOps',
+      stateMutability: 'payable',
+      inputs: [
+        {
+          name: 'ops',
+          type: 'tuple[]',
+          components: PackedUserOperationComponent
+        },
+        {
+          name: 'beneficiary',
+          type: 'address'
+        }
+      ],
+      outputs: []
+    }
+  ] as const,
+  functionName: 'handleOps',
+  args: [[signedOp], ACCOUNT0],
+  value: 0n
+});
 
 console.log('Wait for transaction receipt...');
 const receipt = await client.waitForTransactionReceipt({ hash: txhash });
 if (receipt.status !== 'success') {
   console.error(`fail get receipt(tx_hash=${txhash}): ${receipt.status}`);
-  // try {
-  //   await client.simulateContract({...params});
-  // } catch (e) {
-  //   console.log(e);
-  // }
   process.exit(1);
 }
 
