@@ -98,6 +98,7 @@ contract MockEntryPoint is IEntryPointExtra {
 }
 
 contract ExampleTest is Test, HelperContract {
+    MyUserOp muo;
     Example public op;
 
     function setUp() public {
@@ -105,12 +106,13 @@ contract ExampleTest is Test, HelperContract {
         signers[0] = abi.encodePacked(ALICE);
         signers[1] = abi.encodePacked(BOB);
         signers[2] = abi.encodePacked(CAROL);
-        op = new Example(signers, 2);
+        muo = new MyUserOp(signers, 2);
+        op = new Example();
         vm.etch(ENTRYPOINT_ADDR, type(MockEntryPoint).runtimeCode);
     }
 
     function test_getSigners() public {
-        bytes[] memory currentSigners = op.getSigners();
+        bytes[] memory currentSigners = op.getSigners(muo);
         assertEq(currentSigners.length, 3);
         assertEq(currentSigners[0], abi.encodePacked(ALICE));
         assertEq(currentSigners[1], abi.encodePacked(BOB));
@@ -124,8 +126,7 @@ contract ExampleTest is Test, HelperContract {
         signers[0] = abi.encodePacked(ALICE);
         signers[1] = abi.encodePacked(BOB);
 
-        address muo = op.getMyUserOpAddress();
-        PackedUserOperation[] memory ops = op.addSigners(addingSigners);
+        PackedUserOperation[] memory ops = op.addSigners(muo, addingSigners);
         bytes32 opHash = IEntryPointExtra(ENTRYPOINT_ADDR).getUserOpHash(ops[0]);
         bytes[] memory signatures = new bytes[](2);
         signatures[0] = sign(ALICE_KEY, opHash);
@@ -135,7 +136,7 @@ contract ExampleTest is Test, HelperContract {
         vm.prank(address(msg.sender));
         IEntryPoint(ENTRYPOINT_ADDR).handleOps(ops, payable(address(op)));
 
-        bytes[] memory newSigners = op.getSigners();
+        bytes[] memory newSigners = op.getSigners(muo);
         assertEq(newSigners.length, 4);
     }
 }

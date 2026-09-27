@@ -7,7 +7,6 @@ import {ERC4337Utils, IEntryPointExtra} from "@openzeppelin/contracts/account/ut
 import {console} from "forge-std/console.sol";
 
 contract Example {
-    MyUserOp internal muo_;
     address constant ENTRYPOINT = address(ERC4337Utils.ENTRYPOINT_V09);
     uint192 constant NONCE_KEY = uint192(0x123400000000000000000000000000000000000000000000);
 
@@ -15,45 +14,37 @@ contract Example {
     // これがないとhandleOps()によるpayable(address(this))への送金が"AA91 failed send to beneficiary"によりrevertする
     receive() external payable virtual {}
 
-    constructor(bytes[] memory signers, uint64 threshold) {
-        muo_ = new MyUserOp(signers, threshold);
+    function getSigners(MyUserOp muo) public view returns (bytes[] memory) {
+        return muo.getSigners(0, type(uint64).max);
     }
 
-    function getMyUserOpAddress() public view returns (address) {
-        return address(muo_);
+    function addSigners(MyUserOp muo, bytes[] memory adders) public view returns (PackedUserOperation[] memory) {
+        return _executeMultiSigUserOp(muo, abi.encodeWithSelector(muo.addSigners.selector, adders));
     }
 
-    function getSigners() public view returns (bytes[] memory) {
-        return muo_.getSigners(0, type(uint64).max);
-    }
-
-    function addSigners(bytes[] memory adders) public view returns (PackedUserOperation[] memory) {
-        return _executeMultiSigUserOp(abi.encodeWithSelector(muo_.addSigners.selector, adders));
-    }
-
-    function removeSigners(bytes[] memory removers, bytes[] memory signers, bytes[] memory signatures)
+    function removeSigners(MyUserOp muo, bytes[] memory removers, bytes[] memory signers, bytes[] memory signatures)
         public
         view
         returns (PackedUserOperation[] memory)
     {
-        return _executeMultiSigUserOp(abi.encodeWithSelector(muo_.removeSigners.selector, removers));
+        return _executeMultiSigUserOp(muo, abi.encodeWithSelector(muo.removeSigners.selector, removers));
     }
 
-    function setThreshold(uint64 threshold, bytes[] memory signers, bytes[] memory signatures)
+    function setThreshold(MyUserOp muo, uint64 threshold, bytes[] memory signers, bytes[] memory signatures)
         public
         view
         returns (PackedUserOperation[] memory)
     {
-        return _executeMultiSigUserOp(abi.encodeWithSelector(muo_.setThreshold.selector, threshold));
+        return _executeMultiSigUserOp(muo, abi.encodeWithSelector(muo.setThreshold.selector, threshold));
     }
 
-    function _executeMultiSigUserOp(bytes memory callData) internal view returns (PackedUserOperation[] memory) {
-        IEntryPoint entryPoint = muo_.entryPoint();
-        uint256 nonce = entryPoint.getNonce(address(muo_), NONCE_KEY);
+    function _executeMultiSigUserOp(MyUserOp muo, bytes memory callData) internal view returns (PackedUserOperation[] memory) {
+        IEntryPoint entryPoint = muo.entryPoint();
+        uint256 nonce = entryPoint.getNonce(address(muo), NONCE_KEY);
 
         PackedUserOperation[] memory ops = new PackedUserOperation[](1);
         ops[0] = PackedUserOperation({
-            sender: address(muo_),
+            sender: address(muo),
             nonce: nonce,
             initCode: bytes(""),
             callData: callData,
