@@ -22,11 +22,19 @@ contract MyUserOpTest is Test, HelperContract {
         op = new MyUserOp(signers, 2);
     }
 
-    function test_addSigners() public {
+    function test_addSigners_from_entrypoint() public {
         bytes[] memory signers = new bytes[](1);
         signers[0] = abi.encodePacked(DAVE);
         vm.prank(address(op.entryPoint()));
         op.addSigners(signers);
         assertEq(op.getSignerCount(), 4);
+    }
+
+    function test_addSigners_from_other() public {
+        bytes[] memory signers = new bytes[](1);
+        signers[0] = abi.encodePacked(DAVE);
+        vm.prank(ALICE);
+        vm.expectRevert();
+        op.addSigners(signers);
     }
 }

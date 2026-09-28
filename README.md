@@ -39,6 +39,7 @@ Deposit
 
 ```shell
 $ cd viem
+$ pnpm install
 ```
 
 `pnpm run addSigners`は署名者を1名追加する。
