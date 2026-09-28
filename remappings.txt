@@ -1,0 +1,9 @@
+@openzeppelin/=lib/openzeppelin-contracts/
+forge-std/=lib/forge-std/src/
+@ensdomains/=lib/account-abstraction/node_modules/@ensdomains/
+@uniswap/=lib/account-abstraction/node_modules/@uniswap/
+account-abstraction/=lib/account-abstraction/contracts/
+base64-sol/=lib/account-abstraction/node_modules/base64-sol/
+hardhat-deploy/=lib/account-abstraction/node_modules/hardhat-deploy/
+hardhat/=lib/account-abstraction/node_modules/hardhat/
+openzeppelin-contracts/=lib/openzeppelin-contracts/
