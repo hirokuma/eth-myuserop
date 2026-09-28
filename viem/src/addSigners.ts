@@ -17,11 +17,12 @@ const ACCOUNT0: Address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
 const ACCOUNT0_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 const ACCOUNT1: Address = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8';
 
-// ChatGPTで適当に値を作ってもらった
+// ChatGPTで適当に値を作ってもらったがAnvilには高すぎるようでbeneficiaryに戻るGas代が多くなる
+// maxFeePerGasを払い戻しに使っているので値を下げる
 const verificationGasLimit = 150_000n;
 const callGasLimit = 500_000n;
 const maxPriorityFeePerGas = 2_000_000_000n;
-const maxFeePerGas = 30_000_000_000n;
+const maxFeePerGas = 1_000_000_000n;
 
 // https://github.com/eth-infinitism/account-abstraction/blob/v0.9.0/contracts/interfaces/PackedUserOperation.sol#L36-L46
 type PackedUserOperation = {

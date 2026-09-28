@@ -30,11 +30,12 @@ const ACCOUNT2_KEY = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804
 
 const BOB: Address = '0x90F79bf6EB2c4f870365E785982E1f101E93b906';
 
-// ChatGPTで適当に値を作ってもらった
+// ChatGPTで適当に値を作ってもらったがAnvilには高すぎるようでbeneficiaryに戻るGas代が多くなる
+// maxFeePerGasを払い戻しに使っているので値を下げる
 const verificationGasLimit = 150_000n;
 const callGasLimit = 500_000n;
 const maxPriorityFeePerGas = 2_000_000_000n;
-const maxFeePerGas = 30_000_000_000n;
+const maxFeePerGas = 1_000_000_000n;
 
 // ERC-7821 batch mode: bytes32(0x01 || 0x00 || selector 0x00000000 || payload 0x00..)
 const BATCH_MODE = '0x0100000000000000000000000000000000000000000000000000000000000000' as Hex;
