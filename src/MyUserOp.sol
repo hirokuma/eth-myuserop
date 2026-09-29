@@ -32,8 +32,7 @@ contract MyUserOp is Account, EIP712, ERC7739, ERC7821, MultiSignerERC7913 {
         _setThreshold(threshold);
     }
 
-    // https://docs.openzeppelin.com/contracts/5.x/multisig#multisignererc7913
-    /// @dev Allows the entry point as an authorized executor.
+    /// @dev Allows only the entry point
     function _erc7821AuthorizedExecutor(address caller, bytes32, bytes calldata)
         internal
         view
